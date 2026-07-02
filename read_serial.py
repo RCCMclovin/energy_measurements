@@ -11,7 +11,7 @@ except:
 ser.open()
 
 #Definicao dos arquivos de saida
-path = "./logs/V3Sender/"
+path = "./logs/Arduino_Idle/"
 """
 arqs= [ "05.csv","06.csv",
         "07.csv","08.csv",
