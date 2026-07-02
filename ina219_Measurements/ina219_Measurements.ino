@@ -2,7 +2,7 @@
 #include <Adafruit_INA219.h>
 Adafruit_INA219 ina219;
 
-float shuntvoltage = 0;
+float power = 0;
 float busvoltage = 0;
 float current_mA = 0;
 float loadvoltage = 0;
@@ -40,14 +40,12 @@ void loop(void){
     test_count++;
     unsigned long t = millis();
     while(start_reading){
-      shuntvoltage = ina219.getShuntVoltage_mV();
+      power = ina219.getPower_mW();
       busvoltage = ina219.getBusVoltage_V();
       current_mA = ina219.getCurrent_mA();
-      loadvoltage = busvoltage + (shuntvoltage / 1000);
   
       if(current_mA > 0){
-        Serial.print(busvoltage); Serial.print(" V,"); Serial.print(shuntvoltage); Serial.print(" mV,"); 
-        Serial.print(loadvoltage); Serial.print(" V,"); Serial.print(current_mA); Serial.println(" mA");
+        Serial.print(busvoltage); Serial.print(" V,"); Serial.print(power); Serial.print(" mW,"); Serial.print(current_mA); Serial.println(" mA");
       }
       start_reading = digitalRead(input);
     }

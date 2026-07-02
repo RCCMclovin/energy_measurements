@@ -24,7 +24,7 @@ arqs= [ "05.csv","06.csv",
 #"""
 arqs = ["idle.csv"]
 #Cabeçalho do csv
-header= "Bus Voltage, Shunt Voltage, Load Voltage, Current"
+header= "Bus Voltage,Power,Current"
 
 
 #Loop para os experimentos
@@ -42,11 +42,15 @@ while i < len(arqs):
         while not ("Time" in s):
             try:
                 #Abrindo o Arquivo
-                f = open(path+arqs[i],'a')
+                f = open(path+arqs[i],'r')
+                f.close()
             except:
                 #Arquivo não existe
                 f = open(path+arqs[i],'w')
                 f.write(header+'\n')
+                f.close()
+            finally:
+                f = open(path+arqs[i],'a')
             #Escrevendo leitura
             f.write(s+'\n')
             f.close()
