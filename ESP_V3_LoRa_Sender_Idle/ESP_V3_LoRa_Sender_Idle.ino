@@ -4,7 +4,7 @@ void setup() {
 
   digitalWrite(7,HIGH);
   while(count <= 100){
-    delay(200);
+    delay(206);
     count++;
   }
   digitalWrite(7,LOW);
