@@ -1,13 +1,12 @@
-//#include <SPI.h>
+#include <SPI.h>
 #include <LoRa.h>
 
 #define measurementLed 8
-#define resetPin 4
 
 //LoRa Pins
 #define csPin 10
 #define resetPin 7
-#define irqPin 6
+#define irqPin 2
 
 //SPI Interface Pins
 #define SCK 13
@@ -16,32 +15,27 @@
 
 #define period 750//60000 * 5 // Minutos de delay entre coleta
 
-int TXPOWER = 20;
+#define startBut 6
+
+int TXPOWER = 4;
 
 char txpacket[101];
 String msg;
 
-void (* resetFunc) (void) = 0;
-/*
-void resetFunc(){
-  digitalWrite(resetPin, HIGH);
-}
-//*/
+int count_packets = 100;
 
-void setup() {
-  //Serial Setup
-  Serial.begin(9600);
-  delay(1000);
-  //while (!Serial);
-  //End Serial Setup
+bool lora_idle = true;
 
-  //SPI.begin(SCK,MISO,MOSI,csPin);
+void OnTxDone( void );
+
+void LoRaReset(void){
   LoRa.setPins(csPin, resetPin, irqPin);
 
   if (!LoRa.begin(915E6)) {
     Serial.println("Starting LoRa failed!");
     while (1);
   }
+  LoRa.onTxDone(OnTxDone);
 
   //Set LoRa Params
   LoRa.setSpreadingFactor(12);
@@ -49,26 +43,64 @@ void setup() {
   LoRa.setSignalBandwidth(125E3);
   LoRa.setPreambleLength(8);
   LoRa.setTxPower(TXPOWER, PA_OUTPUT_PA_BOOST_PIN);
+}
 
+void setup() {
+  //Serial Setup
+  Serial.begin(9600);
+  delay(1000);
+  //End Serial Setup
+
+  //SPI.begin(SCK,MISO,MOSI,csPin);
+  
   pinMode(measurementLed, OUTPUT);
-  for(int i=0; i<100; i++){
+  digitalWrite(measurementLed, LOW);
+  pinMode(startBut, INPUT);
+  Serial.println("\nAwainting button press for start...");
+  while(!digitalRead(startBut)){
+    delay(10);
+  }
+  Serial.println("Starting experiment.");
+}
+
+void loop() {
+  if(lora_idle && count_packets < 100){
+    for(int i=0; i<100; i++){
       txpacket[i] = (char) random(65,90);
     }
     txpacket[100] = "\0";
     msg = String(txpacket).substring(0,100);
-}
 
-void loop() {
-  digitalWrite(measurementLed, HIGH);
-  sendPacket(msg);
-  Serial.println(msg);
-  digitalWrite(measurementLed, LOW);
-  delay(period);
-  resetFunc();
+    lora_idle = false;
+    sendPacket(msg);
+    //Serial.println(msg);
+  }
+  if(count_packets >= 100){
+    digitalWrite(measurementLed, LOW);
+    delay(period);
+
+    if(TXPOWER < 21 && lora_idle){
+      count_packets = 0;
+      TXPOWER++;
+      LoRaReset();
+      digitalWrite(measurementLed, HIGH);
+    }
+    if(TXPOWER == 21){
+      Serial.println("Finished.");
+      TXPOWER++;
+    }
+  }
 }
 
 void sendPacket(String out){
   LoRa.beginPacket();
   LoRa.print(out);
-  LoRa.endPacket();
+  LoRa.endPacket(true);
+}
+
+void OnTxDone( void ){
+  //Serial.println("Tx Done");
+  LoRaReset();
+  count_packets++;
+	lora_idle = true;
 }
