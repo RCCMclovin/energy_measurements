@@ -19,13 +19,13 @@
 
 #define RF_FREQUENCY                                915000000 // Hz
 
-int TX_OUTPUT_POWER=                                 5;        // dBm
+int TX_OUTPUT_POWER=                                 14;        // dBm
 
 #define LORA_BANDWIDTH                              0         // [0: 125 kHz,
                                                               //  1: 250 kHz,
                                                               //  2: 500 kHz,
                                                               //  3: Reserved]
-#define LORA_SPREADING_FACTOR                       7         // [SF7..SF12]
+#define LORA_SPREADING_FACTOR                       12         // [SF7..SF12]
 #define LORA_CODINGRATE                             1         // [1: 4/5,
                                                               //  2: 4/6,
                                                               //  3: 4/7,
@@ -37,7 +37,10 @@ int TX_OUTPUT_POWER=                                 5;        // dBm
 
 
 #define RX_TIMEOUT_VALUE                            1000
-#define BUFFER_SIZE                                 250 // Define the payload size here
+#define BUFFER_SIZE                                 24 // Define the payload size here
+
+#define measurementLed 7
+#define startBut 0
 
 char txpacket[BUFFER_SIZE];
 char rxpacket[BUFFER_SIZE];
@@ -45,7 +48,7 @@ char rxpacket[BUFFER_SIZE];
 double txNumber;
 //unsigned long timeTaken;
 
-int count_packets = 0;
+int count_packets = 100;
 
 bool lora_idle=true;
 
@@ -54,7 +57,7 @@ void OnTxDone( void );
 void OnTxTimeout( void );
 
 void setup() {
-    //Serial.begin(115200);
+    Serial.begin(115200);
     Mcu.begin(HELTEC_BOARD,SLOW_CLK_TPYE);
 
     txNumber=0;
@@ -64,25 +67,33 @@ void setup() {
 
     Radio.Init( &RadioEvents );
     Radio.SetChannel( RF_FREQUENCY );
+    /*
     Radio.SetTxConfig( MODEM_LORA, TX_OUTPUT_POWER, 0, LORA_BANDWIDTH,
                                    LORA_SPREADING_FACTOR, LORA_CODINGRATE,
                                    LORA_PREAMBLE_LENGTH, LORA_FIX_LENGTH_PAYLOAD_ON,
                                    true, 0, 0, LORA_IQ_INVERSION_ON, 3000 );
+    //*/
     
-    pinMode(7, OUTPUT);
-    digitalWrite(7,HIGH);
+    pinMode(measurementLed, OUTPUT);
+    digitalWrite(measurementLed,LOW);
+    pinMode(startBut, INPUT_PULLUP);
+    Serial.println("\nAwainting button press for start...");
+    while(digitalRead(startBut)){
+      delay(10);
+    }
+    Serial.println("Starting experiment.");
    }
 
 
 
 void loop()
 {
-	if(lora_idle == true && count_packets < 100)
+	if(lora_idle && count_packets < 100 && TX_OUTPUT_POWER < 21)
 	{
-    for(int i=0; i<100; i++){
+    for(int i=0; i<24; i++){
       txpacket[i] = (char) random(65,90);
     }
-
+    txpacket[24] = '\0';
 		//Serial.printf("\r\nsending packet \"%s\" , length %d\r\n",txpacket, strlen(txpacket));
 
     //timeTaken = millis();
@@ -92,7 +103,7 @@ void loop()
 	}
   Radio.IrqProcess( );
   if(count_packets == 100){
-    digitalWrite(7,LOW);
+    digitalWrite(measurementLed,LOW);
     //Serial.println("Test Finished");
     delay(750);
     if(TX_OUTPUT_POWER < 21){
@@ -102,7 +113,11 @@ void loop()
                                    LORA_PREAMBLE_LENGTH, LORA_FIX_LENGTH_PAYLOAD_ON,
                                    true, 0, 0, LORA_IQ_INVERSION_ON, 3000 );
       count_packets = 0;
-      digitalWrite(7,HIGH);
+      digitalWrite(measurementLed,HIGH);
+    }
+    if(TX_OUTPUT_POWER == 21){
+      Serial.println("Finished");
+      TX_OUTPUT_POWER++;
     }
   }
 }

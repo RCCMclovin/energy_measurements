@@ -11,7 +11,7 @@ except:
 ser.open()
 
 #Definicao dos arquivos de saida
-path = "./logs/Arduino_FullPrototype/"
+path = "./logs/ESP_V3_FullPrototype/"
 #"""
 arqs= [ "05.csv","06.csv",
         "07.csv","08.csv",
@@ -29,7 +29,7 @@ header= "Bus Voltage,Power,Current"
 
 
 #Loop para os experimentos
-i = 0
+i = 0  #Use essa variável para pular testes
 while i < len(arqs):
     #Iniciando a leitura e esperando iniciar os testes
     s=str(ser.readline())[2:].replace("\'","")\

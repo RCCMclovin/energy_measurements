@@ -6,13 +6,13 @@
 
 #define RF_FREQUENCY                                915000000 // Hz
 
-int TX_OUTPUT_POWER=                                 5;        // dBm
+int TX_OUTPUT_POWER=                                 4;        // dBm
 
 #define LORA_BANDWIDTH                              0         // [0: 125 kHz,
                                                               //  1: 250 kHz,
                                                               //  2: 500 kHz,
                                                               //  3: Reserved]
-#define LORA_SPREADING_FACTOR                       7         // [SF7..SF12]
+#define LORA_SPREADING_FACTOR                       12         // [SF7..SF12]
 #define LORA_CODINGRATE                             1         // [1: 4/5,
                                                               //  2: 4/6,
                                                               //  3: 4/7,
@@ -26,13 +26,16 @@ int TX_OUTPUT_POWER=                                 5;        // dBm
 #define RX_TIMEOUT_VALUE                            1000
 #define BUFFER_SIZE                                 250 // Define the payload size here
 
+#define measurementLed 7
+#define startBut 0
+
 String outgoing;
 char txpacket[BUFFER_SIZE];
 char rxpacket[BUFFER_SIZE];
 
 //unsigned long timeTaken;
 
-int count_packets = 0;
+int count_packets = 100;
 
 bool lora_idle=true;
 
@@ -57,7 +60,7 @@ GravityTDS gravityTds;  //Variável utilizada pela biblioteca para realizar as m
 
 
 void setup() {
-  //Serial.begin(115200);
+  Serial.begin(115200);
   Mcu.begin(HELTEC_BOARD,SLOW_CLK_TPYE);
 
   RadioEvents.TxDone = OnTxDone;
@@ -65,11 +68,13 @@ void setup() {
 
   Radio.Init( &RadioEvents );
   Radio.SetChannel( RF_FREQUENCY );
+  /*
   Radio.SetTxConfig( MODEM_LORA, TX_OUTPUT_POWER, 0, LORA_BANDWIDTH,
                                    LORA_SPREADING_FACTOR, LORA_CODINGRATE,
                                    LORA_PREAMBLE_LENGTH, LORA_FIX_LENGTH_PAYLOAD_ON,
                                    true, 0, 0, LORA_IQ_INVERSION_ON, 3000 );
-
+  //*/
+  
   if (!ads.begin()){
     Serial.println("Failed to initialize ADS.");
     while (1);
@@ -79,13 +84,19 @@ void setup() {
   gravityTds.setAdcRange(4096);  //1024 for 10bit ADC;4096 for 12bit ADC
   gravityTds.begin();  //initialization
   
-  pinMode(7, OUTPUT);
-  digitalWrite(7,HIGH);
+  pinMode(measurementLed, OUTPUT);
+  digitalWrite(measurementLed,LOW);
+  pinMode(startBut, INPUT_PULLUP);
+  Serial.println("\nAwainting button press for start...");
+  while(digitalRead(startBut)){
+    delay(10);
+  }
+  Serial.println("Starting experiment.");
 
 }
 
 void loop() {
-  if(lora_idle == true && count_packets < 100)
+  if(lora_idle == true && count_packets < 100 && TX_OUTPUT_POWER < 21)
 	{
     outgoing = coleta();
     outgoing.getBytes((uint8_t *) txpacket, outgoing.length()+1);
@@ -98,8 +109,7 @@ void loop() {
 	}
   Radio.IrqProcess( );
   if(count_packets == 100){
-    digitalWrite(7,LOW);
-    //Serial.println("Test Finished");
+    digitalWrite(measurementLed,LOW);
     delay(750);
     if(TX_OUTPUT_POWER < 21){
       TX_OUTPUT_POWER++;
@@ -108,7 +118,11 @@ void loop() {
                                    LORA_PREAMBLE_LENGTH, LORA_FIX_LENGTH_PAYLOAD_ON,
                                    true, 0, 0, LORA_IQ_INVERSION_ON, 3000 );
       count_packets = 0;
-      digitalWrite(7,HIGH);
+      digitalWrite(measurementLed,HIGH);
+    }
+    if(TX_OUTPUT_POWER == 21){
+      Serial.println("Finished");
+      TX_OUTPUT_POWER++;
     }
   }
 }
@@ -123,7 +137,7 @@ String coleta(){
 }
 
 String coleta_temperatura(){
-  temp = thermistor.read();
+  temp = thermistor.read()/10;
   return String(temp) + "ºC;";   // Read temperature);
 }
 

@@ -17,9 +17,9 @@
 
 #define startBut 6
 
-int TXPOWER = 4;
+int TXPOWER = 14;
 
-char txpacket[101];
+char txpacket[36];
 String msg;
 
 int count_packets = 100;
@@ -64,12 +64,12 @@ void setup() {
 }
 
 void loop() {
-  if(lora_idle && count_packets < 100){
-    for(int i=0; i<100; i++){
+  if(lora_idle && count_packets < 100 && TXPOWER < 21){
+    for(int i=0; i<35; i++){
       txpacket[i] = (char) random(65,90);
     }
-    txpacket[100] = "\0";
-    msg = String(txpacket).substring(0,100);
+    txpacket[25] = "\0";
+    msg = String(txpacket).substring(0,24);
 
     lora_idle = false;
     sendPacket(msg);
