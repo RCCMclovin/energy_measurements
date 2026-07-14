@@ -11,8 +11,8 @@ except:
 ser.open()
 
 #Definicao dos arquivos de saida
-path = "./logs/Arduino_Idle/"
-"""
+path = "./logs/Arduino_FullPrototype/"
+#"""
 arqs= [ "05.csv","06.csv",
         "07.csv","08.csv",
         "09.csv","10.csv",
@@ -23,7 +23,7 @@ arqs= [ "05.csv","06.csv",
         "19.csv","20.csv"]
 #"""
 #arqs = ["06.csv"]
-arqs = ["idle.csv"]
+#arqs = ["idle.csv"]
 #Cabeçalho do csv
 header= "Bus Voltage,Power,Current"
 

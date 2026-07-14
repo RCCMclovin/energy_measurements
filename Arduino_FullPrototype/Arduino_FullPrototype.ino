@@ -17,6 +17,8 @@
 
 #define period 750//60000 * 5 // Minutos de delay entre coleta
 
+#define startBut 6
+
 //Thermistor Variables
 #define NTC_PIN A2 // Analog pin used to read the NTC
 
@@ -40,9 +42,30 @@ float valor_calibracao = 21.34; // Fator de calibração para o ajuste fino
 GravityTDS gravityTds;  //Variável utilizada pela biblioteca para realizar as medições
 //End TDS Variables
 
-int TXPOWER = 20;
+int TXPOWER = 4;
 
-void (* resetFunc) (void) = 0;
+int count_packets = 100;
+
+bool lora_idle = true;
+
+void OnTxDone( void );
+
+void LoRaReset(void){
+  LoRa.setPins(csPin, resetPin, irqPin);
+
+  if (!LoRa.begin(915E6)) {
+    Serial.println("Starting LoRa failed!");
+    while (1);
+  }
+  //LoRa.onTxDone(OnTxDone);
+
+  //Set LoRa Params
+  LoRa.setSpreadingFactor(12);
+  LoRa.setCodingRate4(5);
+  LoRa.setSignalBandwidth(125E3);
+  LoRa.setPreambleLength(8);
+  LoRa.setTxPower(TXPOWER, PA_OUTPUT_PA_BOOST_PIN);
+}
 
 void setup() {
   //Serial Setup
@@ -59,39 +82,47 @@ void setup() {
   //End TDS Setup
 
   //SPI.begin(SCK,MISO,MOSI,csPin);
-  LoRa.setPins(csPin, resetPin, irqPin);
-
-  if (!LoRa.begin(915E6)) {
-    Serial.println("Starting LoRa failed!");
-    while (1);
-  }
-
-  //Set LoRa Params
-  LoRa.setSpreadingFactor(12);
-  LoRa.setCodingRate4(5);
-  LoRa.setSignalBandwidth(125E3);
-  LoRa.setPreambleLength(8);
-  LoRa.setTxPower(TXPOWER, PA_OUTPUT_PA_BOOST_PIN);
 
   pinMode(measurementLed, OUTPUT);
-
+  digitalWrite(measurementLed, LOW);
+  pinMode(startBut, INPUT);
+  Serial.println("\nAwainting button press for start...");
+  while(!digitalRead(startBut)){
+    delay(10);
+  }
+  Serial.println("Starting experiment.");
 }
 
 void loop() {
+  if(lora_idle && count_packets < 100){
+    String msg = coleta();
+    lora_idle = false;
+    sendPacket(msg);
+    //Serial.println(msg);
+  }
+  if(count_packets >= 100){
+    digitalWrite(measurementLed, LOW);
+    delay(period);
 
-  digitalWrite(measurementLed, HIGH);
-  String outgoing = coleta();              // outgoing message
-  sendPacket(outgoing);
-  Serial.println(outgoing);
-  digitalWrite(measurementLed, LOW);
-  delay(period);
-  resetFunc();
+    if(TXPOWER < 21 && lora_idle){
+      count_packets = 0;
+      TXPOWER++;
+      LoRaReset();
+      digitalWrite(measurementLed, HIGH);
+    }
+    if(TXPOWER == 21){
+      Serial.println("Finished.");
+      TXPOWER++;
+    }
+  }
 }
 
 void sendPacket(String out){
   LoRa.beginPacket();
   LoRa.print(out);
   LoRa.endPacket();
+  count_packets++;
+	lora_idle = true;
 }
 
 String coleta(){
@@ -99,12 +130,12 @@ String coleta(){
   msg += coleta_temperatura();
   msg += coleta_PH();
   msg += coleta_TDS();
-  return msg;
+  return msg; // has at least 23 chars
 }
 
 String coleta_temperatura(){
-  temp = thermistor.read();
-  return String(temp) + "ºC;";   // Read temperature);
+  temp = thermistor.read()/10; //Returns (int) temp*10;
+  return String(temp) + "ºC;";
 }
 
 String coleta_PH(){
@@ -118,3 +149,13 @@ String coleta_TDS(){
   float tdsValue = gravityTds.getTdsValue();  // then get the value
   return String(tdsValue) + "ppm;";
 }
+
+/*
+void OnTxDone( void ){
+  Serial.println("Tx Done");
+  LoRaReset();
+  count_packets++;
+	lora_idle = true;
+}
+//*/
+
