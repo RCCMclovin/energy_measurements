@@ -19,7 +19,7 @@
 
 #define RF_FREQUENCY                                915000000 // Hz
 
-int TX_OUTPUT_POWER=                                 14;        // dBm
+int TX_OUTPUT_POWER=                                 4;        // dBm
 
 #define LORA_BANDWIDTH                              0         // [0: 125 kHz,
                                                               //  1: 250 kHz,

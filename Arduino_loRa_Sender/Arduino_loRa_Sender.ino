@@ -17,7 +17,7 @@
 
 #define startBut 6
 
-int TXPOWER = 14;
+int TXPOWER = 4;
 
 char txpacket[24];
 String msg;
