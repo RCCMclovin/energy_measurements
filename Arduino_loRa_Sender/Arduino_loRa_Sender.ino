@@ -68,7 +68,7 @@ void loop() {
     for(int i=0; i<23; i++){
       txpacket[i] = (char) random(65,90);
     }
-    txpacket[23] = "\0";
+    txpacket[23] = '\0';
     msg = String(txpacket).substring(0,24);
 
     lora_idle = false;

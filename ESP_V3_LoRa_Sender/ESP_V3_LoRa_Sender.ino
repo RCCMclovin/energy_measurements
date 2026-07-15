@@ -90,10 +90,10 @@ void loop()
 {
 	if(lora_idle && count_packets < 100 && TX_OUTPUT_POWER < 21)
 	{
-    for(int i=0; i<24; i++){
+    for(int i=0; i<23; i++){
       txpacket[i] = (char) random(65,90);
     }
-    txpacket[24] = '\0';
+    txpacket[23] = '\0';
 		//Serial.printf("\r\nsending packet \"%s\" , length %d\r\n",txpacket, strlen(txpacket));
 
     //timeTaken = millis();
