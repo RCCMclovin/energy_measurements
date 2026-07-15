@@ -10,7 +10,7 @@ It is organized as follows:
 
 - *ESP_V3_FullPrototype*: This code includes the complete prototype used by us for water quality monitoring with ESP32 (Heltec WiFi LoRa 32 V3). This code include the sensors: "TDS Meter V1.0", "NTC 10K waterproof - MF58" and "PH-4502C". To guarantee effective measumerements from the PH sensor (which works with 5v logic) a ADS1115 is also included in this prototype to convert 5v logic to 3.3v. An Output in port seven connects to the arduino running the *ina219_Measurements* code and the power source cable goes through the INA219 sensor. This code sends 100 LoRa Packets with Spread Factor 12 (To maximize energy consumption) and variable Transmission Power (txpower, varies between 5 and 20). Packets contain only 23 characters.
 
-- *Arduino_Idle*: Using the same logic from *ESP_V3_Idle*, this code counts to 100 with 216 ms delays.
+- *Arduino_Idle*: Using the same logic from *ESP_V3_Idle*, this code counts to 100 with 4300 ms delays.
 
 - *Arduino_FullPrototype*: This code includes the complete prototype used by us for water quality monitoring with Arduino Uno. This code include the sensors: "TDS Meter V1.0", "NTC 10K waterproof - MF58" and "PH-4502C". The LoRa Transceiver used is the RFM96. An Output in port seven connects to the arduino running the *ina219_Measurements* code and the power source cable goes through the INA219 sensor. This code sends 100 LoRa Packets with Spread Factor 12 (To maximize energy consumption) and a fixed Transmission Power (txpower, may vary between 5 and 20). Packets contain only 23 characters.
 
