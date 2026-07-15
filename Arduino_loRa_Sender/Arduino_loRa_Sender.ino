@@ -19,7 +19,7 @@
 
 int TXPOWER = 14;
 
-char txpacket[36];
+char txpacket[24];
 String msg;
 
 int count_packets = 100;
@@ -65,10 +65,10 @@ void setup() {
 
 void loop() {
   if(lora_idle && count_packets < 100 && TXPOWER < 21){
-    for(int i=0; i<35; i++){
+    for(int i=0; i<23; i++){
       txpacket[i] = (char) random(65,90);
     }
-    txpacket[25] = "\0";
+    txpacket[23] = "\0";
     msg = String(txpacket).substring(0,24);
 
     lora_idle = false;

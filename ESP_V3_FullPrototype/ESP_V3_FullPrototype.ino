@@ -6,7 +6,7 @@
 
 #define RF_FREQUENCY                                915000000 // Hz
 
-int TX_OUTPUT_POWER=                                 4;        // dBm
+int TX_OUTPUT_POWER=                                 18;        // dBm
 
 #define LORA_BANDWIDTH                              0         // [0: 125 kHz,
                                                               //  1: 250 kHz,
@@ -132,13 +132,13 @@ String coleta(){
   msg += coleta_temperatura();
   msg += coleta_PH();
   msg += coleta_TDS();
-  msg += coleta_NTU();
+  //msg += coleta_NTU();
   return msg;
 }
 
 String coleta_temperatura(){
   temp = thermistor.read()/10;
-  return String(temp) + "ºC;";   // Read temperature);
+  return String(temp) + "C;";   // Read temperature);
 }
 
 String coleta_PH(){
